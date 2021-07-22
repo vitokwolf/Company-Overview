@@ -1,56 +1,71 @@
-const { table } = require("console");
-const inquirer = require("inquirer");
+const { table } = require('console');
+const inquirer = require('inquirer');
 const db = require('../db/connection');
 
 // starter function
 function init() {
     inquirer
         .prompt({
-            name: "action",
-            type: "list",
-            message: "What would you like to do?",
+            name: 'action',
+            type: 'list',
+            message: 'What would you like to do?',
             choices: [
-                "View all employees",
-                "View all departments",
-                "View all roles",
-                "Add employee",
-                "Add departments",
-                "Add roles",
-                "Update an employee role",
-                "Done"
+                'View all employees',
+                'View all departments',
+                'View all roles',
+                'Add employee',
+                'Update an employee role',
+                'Remove an employee',
+                'Add departments',
+                'Remove a department',
+                'Add roles',
+                'Remove a role',
+                'Done'
             ]
         })
         .then(answer => {
             switch (answer.action) {
-                case "View all employees":
+                case 'View all employees':
                     employeeSearch();
                     break;
 
-                case "View all departments":
+                case 'View all departments':
                     deptSearch();
                     break;
 
-                case "View all roles":
+                case 'View all roles':
                     roleSearch();
                     break;
 
-                case "Add employee":
+                case 'Add employee':
                     addEmployee();
                     break;
 
-                case "Add departments":
+                case 'Add departments':
                     addDept();
                     break;
 
-                case "Add roles":
+                case 'Add roles':
                     addRoles();
                     break;
 
-                case "Update an employee role":
+                case 'Update an employee role':
                     updateRole();
                     break;
 
-                case "Done":
+                case 'Remove an employee':
+                    deleteEmployee();
+                    break;
+
+                case 'Remove a department':
+                    deleteDept();
+                    break;
+
+                case 'Remove a role':
+                    deleteRole();
+                    break;
+
+                case 'Done':
                     db.end();
                     break;
             }
@@ -66,7 +81,7 @@ function employeeSearch() {
     roles.title AS role,
     roles.salary,
     departments.title AS department,
-    CONCAT(managers.first_name, " ", managers.last_name) AS manager
+    CONCAT(managers.first_name, ' ', managers.last_name) AS manager
 FROM
     employees
     LEFT JOIN roles ON role_id = roles.id
@@ -108,19 +123,19 @@ function roleSearch() {
 function addEmployee() {
     const employeeQ = [
         {
-            type: "input",
-            message: "What is the first name of the employee?",
-            name: "first_name"
+            type: 'input',
+            message: 'What is the first name of the employee?',
+            name: 'first_name'
         },
         {
-            type: "input",
-            message: "What is the last name of the employee?",
-            name: "last_name"
+            type: 'input',
+            message: 'What is the last name of the employee?',
+            name: 'last_name'
         },
         {
-            type: "input",
-            message: "What is the employee's role ID?(Numeric Value)",
-            name: "role_id",
+            type: 'input',
+            message: 'What is the employee role ID?(Numeric Value)',
+            name: 'role_id',
             validate: input => {
                 const pass = input.match(
                     /^[1-9]\d*$/
@@ -128,13 +143,13 @@ function addEmployee() {
                 if (pass) {
                     return true;
                 }
-                return "Please enter a positive number greater than zero."
+                return 'Please enter a positive number greater than zero.'
             }
         },
         {
-            type: "input",
-            message: "What is the manager id of the new employee?(Numeric Value)",
-            name: "manager_id",
+            type: 'input',
+            message: 'What is the manager id of the new employee?(Numeric Value)',
+            name: 'manager_id',
             validate: input => {
                 const pass = input.match(
                     /^[1-9]\d*$/
@@ -142,7 +157,7 @@ function addEmployee() {
                 if (pass) {
                     return true;
                 }
-                return "Please enter a positive number greater than zero."
+                return 'Please enter a positive number greater than zero.'
             }
         }
     ];
@@ -150,7 +165,7 @@ function addEmployee() {
         .prompt(employeeQ)
         .then(answer => {
             db.query(
-                "INSERT INTO employees SET ?",
+                `INSERT INTO employees SET ?`,
                 {
                     first_name: answer.first_name,
                     last_name: answer.last_name,
@@ -171,12 +186,12 @@ function addEmployee() {
 function addDept() {
     inquirer
         .prompt({
-            type: "input",
-            message: "What is the name of the new department?",
-            name: "title"
+            type: 'input',
+            message: 'What is the name of the new department?',
+            name: 'title'
         })
         .then(answer => {
-            db.query("INSERT INTO departments SET ?",
+            db.query(`INSERT INTO departments SET ?`,
                 {
                     title: answer.title
                 },
@@ -193,26 +208,26 @@ function addDept() {
 function addRoles() {
     const roleQ = [
         {
-            type: "input",
-            message: "What role would you like to add?",
-            name: "title"
+            type: 'input',
+            message: 'What role would you like to add?',
+            name: 'title'
         },
         {
-            type: "input",
-            message: "Which department is the role in?",
-            name: "id"
+            type: 'input',
+            message: 'Which department is the role in?',
+            name: 'id'
         },
         {
-            type: "input",
-            message: "What is the salary for the new role?",
-            name: "salary"
+            type: 'input',
+            message: 'What is the salary for the new role?',
+            name: 'salary'
         }
     ];
     inquirer
         .prompt(roleQ)
         .then(answer => {
             db.query(
-                "INSERT INTO roles SET ?",
+                `INSERT INTO roles SET ?`,
                 {
                     title: answer.title,
                     department_id: answer.id,
@@ -228,14 +243,14 @@ function addRoles() {
         })
 };
 
-//update roles and assigns an employee to the newly updated role
+//update role of an employee
 function updateRole() {
     inquirer
         .prompt([
             {
-                type: "input",
-                name: "employee_id",
-                message: "What is the employee id number that you want to update the role?",
+                type: 'input',
+                name: 'employee_id',
+                message: 'What is the employee id number that you want to update the role?',
                 validate: input => {
                     const pass = input.match(
                         /^[1-9]\d*$/
@@ -243,14 +258,14 @@ function updateRole() {
                     if (pass) {
                         return true;
                     }
-                    return "Please enter a positive number greater than zero."
+                    return 'Please enter a positive number greater than zero.'
                 }
 
             },
             {
-                type: "input",
-                name: "role_id",
-                message: "Which role id the employee is beeing assigned to?",
+                type: 'input',
+                name: 'role_id',
+                message: 'Which role id the employee is beeing assigned to?',
                 validate: input => {
                     const pass = input.match(
                         /^[1-9]\d*$/
@@ -258,22 +273,63 @@ function updateRole() {
                     if (pass) {
                         return true;
                     }
-                    return "Please enter a positive number greater than zero."
+                    return 'Please enter a positive number greater than zero.'
                 }
             }
         ])
         .then(answer => {
-            db.query("UPDATE employees SET role_id = ? WHERE id = ?",
+            db.query(`UPDATE employees SET role_id = ? WHERE id = ?`,
                 [
                     answer.role_id,
                     answer.employee_id
                 ],
                 (err, res) => {
                     if (err) throw err
-                    console.log(res.affectedRows + " row " + "updated successfully!");
+                    console.log(res.affectedRows + ' row ' + 'updated successfully!');
                     init()
                 })
         })
 };
+
+// delete an employee
+function deleteEmployee() {
+    inquirer
+        .prompt([
+            {
+                type: 'confirm',
+                name: 'confirmId',
+                message: 'Are you sure? This action is ireversible.',
+                default: false
+            },
+            {
+                type: 'input',
+                message: 'What is the id of the Employee?',
+                name: 'id',
+                when: ({ confirmId }) => confirmId,
+                validate: input => {
+                    const pass = input.match(
+                        /^[1-9]\d*$/
+                    );
+                    if (pass) {
+                        return true;
+                    }
+                    return 'Please enter a positive number greater than zero.'
+                }
+            }]
+        ).then(answer => {
+            db.query(`DELETE FROM employees WHERE id = ?`,
+                [answer.id],
+                (err, res) => {
+                    if (err) {
+                        throw err;
+                    } else if (!res.affectedRows) {
+                        console.log('Employee not found');
+                    } else {
+                    console.log('Employee has been removed!');
+                    init();
+                    }
+                })
+        })
+}
 
 module.exports = init;
