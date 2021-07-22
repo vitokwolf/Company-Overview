@@ -43,7 +43,7 @@ function init() {
                     break;
 
                 case "Add roles":
-                    // addRoles();
+                    addRoles();
                     break;
 
                 case "Update an employee role":
@@ -160,7 +160,7 @@ function addEmployee() {
                 (err, res) => {
                     if (err) throw err;
                     console.log('Employee has been added!');
-                    console.table(answer); 
+                    console.table(answer);
                     init()
                 }
             )
@@ -190,7 +190,43 @@ function addDept() {
 };
 
 //add new role to database 
-
+function addRoles() {
+    const roleQ = [
+        {
+            type: "input",
+            message: "What role would you like to add?",
+            name: "title"
+        },
+        {
+            type: "input",
+            message: "Which department is the role in?",
+            name: "id"
+        },
+        {
+            type: "input",
+            message: "What is the salary for the new role?",
+            name: "salary"
+        }
+    ];
+    inquirer
+        .prompt(roleQ)
+        .then(answer => {
+            db.query(
+                "INSERT INTO roles SET ?",
+                {
+                    title: answer.title,
+                    department_id: answer.id,
+                    salary: answer.salary
+                },
+                (err, res) => {
+                    if (err) throw err;
+                    console.log('New role has been added!');
+                    console.table(answer);
+                    init()
+                }
+            )
+        })
+};
 
 //update roles and assigns an employee to the newly updated role
 
