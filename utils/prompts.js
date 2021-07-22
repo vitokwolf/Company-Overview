@@ -22,7 +22,7 @@ function init() {
         .then(answer => {
             switch (answer.action) {
                 case "View all employees":
-                    // employeeSearch();
+                    employeeSearch();
                     break;
 
                 case "View all departments":
@@ -57,7 +57,27 @@ function init() {
 };
 
 //render all employees data in combination with the Dept, role, and also provides the manager data
-
+function employeeSearch() {
+    db.query(`SELECT
+    employees.id,
+    employees.first_name,
+    employees.last_name,
+    roles.title AS role,
+    roles.salary,
+    departments.title AS department,
+    CONCAT(managers.first_name, " ", managers.last_name) AS manager
+FROM
+    employees
+    LEFT JOIN roles ON role_id = roles.id
+    LEFT JOIN departments ON department_id = departments.id
+    LEFT JOIN employees AS managers ON employees.manager_id = managers.id;`,
+        (err, res) => {
+            if (err) throw err
+            console.table(res)
+            init()
+        }
+    )
+};
 
 //render all the depts
 
