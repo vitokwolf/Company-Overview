@@ -39,7 +39,7 @@ function init() {
                     break;
 
                 case "Add departments":
-                    // addDept();
+                    addDept();
                     break;
 
                 case "Add roles":
@@ -168,7 +168,26 @@ function addEmployee() {
 };
 
 //add a department to database
-
+function addDept() {
+    inquirer
+        .prompt({
+            type: "input",
+            message: "What is the name of the new department?",
+            name: "title"
+        })
+        .then(answer => {
+            db.query("INSERT INTO departments SET ?",
+                {
+                    title: answer.title
+                },
+                (err, res) => {
+                    if (err) throw err;
+                    console.log('Department has been added!');
+                    console.table(answer);
+                    init();
+                })
+        })
+};
 
 //add new role to database 
 
