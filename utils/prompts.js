@@ -47,7 +47,7 @@ function init() {
                     break;
 
                 case "Update an employee role":
-                    // updateRole();
+                    updateRole();
                     break;
 
                 case "Done":
@@ -229,5 +229,51 @@ function addRoles() {
 };
 
 //update roles and assigns an employee to the newly updated role
+function updateRole() {
+    inquirer
+        .prompt([
+            {
+                type: "input",
+                name: "employee_id",
+                message: "What is the employee id number that you want to update the role?",
+                validate: input => {
+                    const pass = input.match(
+                        /^[1-9]\d*$/
+                    );
+                    if (pass) {
+                        return true;
+                    }
+                    return "Please enter a positive number greater than zero."
+                }
+
+            },
+            {
+                type: "input",
+                name: "role_id",
+                message: "Which role id the employee is beeing assigned to?",
+                validate: input => {
+                    const pass = input.match(
+                        /^[1-9]\d*$/
+                    );
+                    if (pass) {
+                        return true;
+                    }
+                    return "Please enter a positive number greater than zero."
+                }
+            }
+        ])
+        .then(answer => {
+            db.query("UPDATE employees SET role_id = ? WHERE id = ?",
+                [
+                    answer.role_id,
+                    answer.employee_id
+                ],
+                (err, res) => {
+                    if (err) throw err
+                    console.log(res.affectedRows + " row " + "updated successfully!");
+                    init()
+                })
+        })
+};
 
 module.exports = init;
