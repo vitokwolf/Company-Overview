@@ -26,7 +26,7 @@ function init() {
                     break;
 
                 case "View all departments":
-                    // deptSearch();
+                    deptSearch();
                     break;
 
                 case "View all roles":
@@ -80,7 +80,16 @@ FROM
 };
 
 //render all the depts
-
+function deptSearch() {
+    db.query(
+        `SELECT * FROM  departments`,
+        (err, res) => {
+            if (err) throw err
+            console.table(res)
+            init()
+        }
+    )
+};
 
 //render all the roles
 
