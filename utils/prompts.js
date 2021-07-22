@@ -1,3 +1,4 @@
+const { table } = require("console");
 const inquirer = require("inquirer");
 const db = require('../db/connection');
 
@@ -34,7 +35,7 @@ function init() {
                     break;
 
                 case "Add employee":
-                    // addEmployee();
+                    addEmployee();
                     break;
 
                 case "Add departments":
@@ -104,7 +105,67 @@ function roleSearch() {
 };
 
 //add an employee to the database
-
+function addEmployee() {
+    const employeeQ = [
+        {
+            type: "input",
+            message: "What is the first name of the employee?",
+            name: "first_name"
+        },
+        {
+            type: "input",
+            message: "What is the last name of the employee?",
+            name: "last_name"
+        },
+        {
+            type: "input",
+            message: "What is the employee's role ID?(Numeric Value)",
+            name: "role_id",
+            validate: input => {
+                const pass = input.match(
+                    /^[1-9]\d*$/
+                );
+                if (pass) {
+                    return true;
+                }
+                return "Please enter a positive number greater than zero."
+            }
+        },
+        {
+            type: "input",
+            message: "What is the manager id of the new employee?(Numeric Value)",
+            name: "manager_id",
+            validate: input => {
+                const pass = input.match(
+                    /^[1-9]\d*$/
+                );
+                if (pass) {
+                    return true;
+                }
+                return "Please enter a positive number greater than zero."
+            }
+        }
+    ];
+    inquirer
+        .prompt(employeeQ)
+        .then(answer => {
+            db.query(
+                "INSERT INTO employees SET ?",
+                {
+                    first_name: answer.first_name,
+                    last_name: answer.last_name,
+                    role_id: answer.role_id,
+                    manager_id: answer.manager_id
+                },
+                (err, res) => {
+                    if (err) throw err;
+                    console.log('Employee has been added!');
+                    console.table(answer); 
+                    init()
+                }
+            )
+        })
+};
 
 //add a department to database
 
@@ -113,3 +174,5 @@ function roleSearch() {
 
 
 //update roles and assigns an employee to the newly updated role
+
+module.exports = init;
