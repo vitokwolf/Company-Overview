@@ -5,48 +5,63 @@ const db = require('../db/connection');
 // starter function
 function init() {
     inquirer
-        .prompt({
-            name: 'action',
-            type: 'list',
-            message: 'What would you like to do?',
-            choices: [
-                'View all employees',
-                'View all departments',
-                'View all roles',
-                'Add employee',
-                'Update an employee role',
-                'Remove an employee',
-                'Add departments',
-                'Remove a department',
-                'Add roles',
-                'Remove a role',
-                'Done'
-            ]
+        .prompt(
+            {
+                name: 'action',
+                type: 'list',
+                message: 'What would you like to do?',
+                choices: [
+                    'Explore Employees Options',
+                    'Explore Departments Options',
+                    'Explore Roles Options',
+                    'EXIT'
+                ]
+            }
+        ).then(answer => {
+            switch (answer.action) {
+                case 'Explore Employees Options':
+                    employeeOptions();
+                    break;
+
+                case 'Explore Departments Options':
+                    deptOptions();
+                    break;
+
+                case 'Explore Roles Options':
+                    roleOptions();
+                    break;
+
+                case 'EXIT':
+                    db.end();
+                    break;
+            }
         })
-        .then(answer => {
+};
+
+// employees options
+function employeeOptions() {
+    inquirer
+        .prompt(
+            {
+                name: 'action',
+                type: 'list',
+                message: 'What would you like to do?',
+                choices: [
+                    'View all employees',
+                    'Add employee',
+                    'Update an employee role',
+                    'Remove an employee',
+                    'Go Back'
+                ]
+            }
+        ).then(answer => {
             switch (answer.action) {
                 case 'View all employees':
                     employeeSearch();
                     break;
 
-                case 'View all departments':
-                    deptSearch();
-                    break;
-
-                case 'View all roles':
-                    roleSearch();
-                    break;
-
                 case 'Add employee':
                     addEmployee();
-                    break;
-
-                case 'Add departments':
-                    addDept();
-                    break;
-
-                case 'Add roles':
-                    addRoles();
                     break;
 
                 case 'Update an employee role':
@@ -57,16 +72,80 @@ function init() {
                     deleteEmployee();
                     break;
 
+                case 'Go Back':
+                    init();
+                    break;
+            }
+        })
+};
+
+// departments options
+function deptOptions() {
+    inquirer
+        .prompt(
+            {
+                name: 'action',
+                type: 'list',
+                message: 'What would you like to do?',
+                choices: [
+                    'View all departments',
+                    'Add departments',
+                    'Remove a department',
+                    'Go Back'
+                ]
+            }
+        ).then(answer => {
+            switch (answer.action) {
+                case 'View all departments':
+                    deptSearch();
+                    break;
+
+                case 'Add departments':
+                    addDept();
+                    break;
+
                 case 'Remove a department':
                     deleteDept();
+                    break;
+
+                case 'Go Back':
+                    init();
+                    break;
+            }
+        })
+};
+
+// roles options
+function roleOptions() {
+    inquirer
+        .prompt(
+            {
+                name: 'action',
+                type: 'list',
+                message: 'What would you like to do?',
+                choices: [
+                    'View all roles',
+                    'Add roles',
+                    'Remove a role',
+                    'Go Back'
+                ]
+            }
+        ).then(answer => {
+            switch (answer.action) {
+                case 'View all roles':
+                    roleSearch();
+                    break;
+
+                case 'Add roles':
+                    addRoles();
                     break;
 
                 case 'Remove a role':
                     deleteRole();
                     break;
 
-                case 'Done':
-                    db.end();
+                case 'Go Back':
+                    init();
                     break;
             }
         })
@@ -90,7 +169,7 @@ FROM
         (err, res) => {
             if (err) throw err
             console.table(res)
-            init()
+            employeeOptions()
         }
     )
 };
@@ -102,7 +181,7 @@ function deptSearch() {
         (err, res) => {
             if (err) throw err
             console.table(res)
-            init()
+            deptOptions()
         }
     )
 };
@@ -114,7 +193,7 @@ function roleSearch() {
         (err, res) => {
             if (err) throw err
             console.table(res)
-            init()
+            roleOptions()
         }
     )
 };
@@ -174,9 +253,11 @@ function addEmployee() {
                 },
                 (err, res) => {
                     if (err) throw err;
-                    console.log('Employee has been added!');
+                    console.log(`
+                    Employee has been added!
+                    `);
                     console.table(answer);
-                    init()
+                    employeeOptions()
                 }
             )
         })
@@ -197,9 +278,11 @@ function addDept() {
                 },
                 (err, res) => {
                     if (err) throw err;
-                    console.log('Department has been added!');
+                    console.log(`
+                    Department has been added!
+                    `);
                     console.table(answer);
-                    init();
+                    deptOptions()
                 })
         })
 };
@@ -235,9 +318,11 @@ function addRoles() {
                 },
                 (err, res) => {
                     if (err) throw err;
-                    console.log('New role has been added!');
+                    console.log(`
+                    New role has been added!
+                    `);
                     console.table(answer);
-                    init()
+                    roleOptions()
                 }
             )
         })
@@ -275,18 +360,34 @@ function updateRole() {
                     }
                     return 'Please enter a positive number greater than zero.'
                 }
+            },
+            {
+                type: 'input',
+                name: 'manager_id',
+                message: 'What is the manager id the employee is beeing assigned to?',
+                validate: input => {
+                    const pass = input.match(
+                        /^[1-9]\d*$/
+                    );
+                    if (pass) {
+                        return true;
+                    }
+                    return 'Please enter a positive number greater than zero.'
+                }
             }
         ])
         .then(answer => {
-            db.query(`UPDATE employees SET role_id = ? WHERE id = ?`,
+            db.query(`UPDATE employees SET role_id = ?, manager_id = ? WHERE id = ?`,
                 [
                     answer.role_id,
+                    answer.manager_id,
                     answer.employee_id
                 ],
                 (err, res) => {
-                    if (err) throw err
-                    console.log(res.affectedRows + ' row ' + 'updated successfully!');
-                    init()
+                    if (err) throw err;
+                    console.log(`
+                    ${res.affectedRows} row updated successfully!`);
+                    employeeOptions()
                 })
         })
 };
@@ -323,10 +424,15 @@ function deleteEmployee() {
                     if (err) {
                         throw err;
                     } else if (!res.affectedRows) {
-                        console.log('Employee not found');
+                        console.log(`
+                        Employee not found
+                        `);
+                        return employeeOptions();
                     } else {
-                    console.log('Employee has been removed!');
-                    init();
+                        console.log(`
+                        Employee has been removed!
+                        `);
+                        employeeOptions()
                     }
                 })
         })
@@ -364,10 +470,15 @@ function deleteRole() {
                     if (err) {
                         throw err;
                     } else if (!res.affectedRows) {
-                        console.log('Role not found');
+                        console.log(`
+                        Role not found
+                        `);
+                        return roleOptions();
                     } else {
-                        console.log('Role has been removed!');
-                        init();
+                        console.log(`
+                        Role has been removed!
+                        `);
+                        roleOptions();
                     }
                 })
         })
@@ -405,10 +516,15 @@ function deleteDept() {
                     if (err) {
                         throw err;
                     } else if (!res.affectedRows) {
-                        console.log('Department not found');
+                        console.log(`
+                        Department not found
+                        `);
+                        return deptOptions();
                     } else {
-                        console.log('Department has been removed!');
-                        init();
+                        console.log(`
+                        Department has been removed!
+                        `);
+                        deptOptions()
                     }
                 })
         })

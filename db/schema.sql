@@ -1,8 +1,10 @@
 USE company_db;
+
 -- delete tables if exist
-DROP TABLE IF EXISTS departments;
-DROP TABLE IF EXISTS roles;
 DROP TABLE IF EXISTS employees;
+DROP TABLE IF EXISTS roles;
+DROP TABLE IF EXISTS departments;
+
 -- create tables and show them
 CREATE TABLE departments (
     id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
