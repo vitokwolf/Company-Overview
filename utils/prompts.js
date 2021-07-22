@@ -373,6 +373,45 @@ function deleteRole() {
         })
 };
 
-
+// delete a department
+function deleteDept() {
+    inquirer
+        .prompt([
+            {
+                type: 'confirm',
+                name: 'confirmId',
+                message: 'Are you sure? This action is ireversible.',
+                default: false
+            },
+            {
+                type: 'input',
+                message: 'What is the id of the department?',
+                name: 'id',
+                when: ({ confirmId }) => confirmId,
+                validate: input => {
+                    const pass = input.match(
+                        /^[1-9]\d*$/
+                    );
+                    if (pass) {
+                        return true;
+                    }
+                    return 'Please enter a positive number greater than zero.'
+                }
+            }]
+        ).then(answer => {
+            db.query(`DELETE FROM departments WHERE id = ?`,
+                [answer.id],
+                (err, res) => {
+                    if (err) {
+                        throw err;
+                    } else if (!res.affectedRows) {
+                        console.log('Department not found');
+                    } else {
+                        console.log('Department has been removed!');
+                        init();
+                    }
+                })
+        })
+};
 
 module.exports = init;
