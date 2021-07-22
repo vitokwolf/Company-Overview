@@ -30,7 +30,7 @@ function init() {
                     break;
 
                 case "View all roles":
-                    // roleSearch();
+                    roleSearch();
                     break;
 
                 case "Add employee":
@@ -92,7 +92,16 @@ function deptSearch() {
 };
 
 //render all the roles
-
+function roleSearch() {
+    db.query(
+        `SELECT * FROM roles`,
+        (err, res) => {
+            if (err) throw err
+            console.table(res)
+            init()
+        }
+    )
+};
 
 //add an employee to the database
 
