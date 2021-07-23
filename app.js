@@ -1,4 +1,4 @@
-//dependicies 
+//dependecies 
 const db = require('./db/connection');
 const init = require('./utils/prompts');
 
