@@ -50,7 +50,7 @@ function employeeOptions() {
                 choices: [
                     'View Employees Filters',
                     'Add Employee',
-                    'Update an Employee Role',
+                    'Update an Employee',
                     'Remove an Employee',
                     'Go Back'
                 ]
@@ -65,7 +65,7 @@ function employeeOptions() {
                     addEmployee();
                     break;
 
-                case 'Update an Employee Role':
+                case 'Update an Employee':
                     updateRole();
                     break;
 
@@ -347,24 +347,55 @@ function updateRole() {
             name: 'employee',
             message: 'Which Employee you want to update the info?',
             choices: emplArr,
-            // when: ({ update }) => update,
+            when: ({ update }) => update
+        },
+        {
+            type: 'confirm',
+            name: 'confirmNF',
+            message: 'Do you need to edit First Name?',
+            default: false,
+            when: ({ update }) => update
+        },
+        {
+            type: 'input',
+            name: 'newFirstName',
+            message: 'What is the Employee First Name?',
+            when: ({ confirmNF }) => confirmNF,
+        },
+        {
+            type: 'confirm',
+            name: 'confirmNL',
+            message: 'Do you need to edit Last Name?',
+            default: false,
+            when: ({ update }) => update
+        },
+        {
+            type: 'input',
+            name: 'newLastName',
+            message: 'What is the Employee Last Name?',
+            when: ({ confirmNL }) => confirmNL,
         },
         {
             type: 'list',
             message: 'What is the Employee New Role?',
             name: 'role',
-            choices: rolesArr
+            choices: rolesArr,
+            when: ({ update }) => update
         },
         {
             type: 'list',
             message: 'Who is the New Manager?',
             name: 'manager',
-            choices: mgrArr
+            choices: mgrArr,
+            when: ({ update }) => update
         }
     ]
     inquirer
         .prompt(updateQ)
         .then(choice => {
+            if (choice.update === false) {
+                return employeeOptions()
+            };
             // get role id
             let roleId;
             rolesData.forEach(role => {
@@ -382,6 +413,20 @@ function updateRole() {
                     empId = employee.id;
                 }
             });
+            // gets first and last names
+            let newFirst;
+            if (choice.confirmNF === true) {
+                newFirst = choice.newFirstName
+            } else {
+                newFirst = employeeFirstName
+            };
+            let newLast;
+            if (choice.confirmNL === true) {
+                newLast = choice.newLastName
+            }
+            else {
+                newLast = employeeLastName
+            };
             // get manager id
             let mgrId
             // Gets the first and last name from the manager response to use to find the id
@@ -393,8 +438,8 @@ function updateRole() {
                     mgrId = manager.id;
                 }
             });
-            const sql = `UPDATE employees SET role_id = ?, manager_id = ? WHERE id = ?;`;
-            const params = [roleId, mgrId, empId];
+            const sql = `UPDATE employees SET first_name = ?, last_name = ?, role_id = ?, manager_id = ? WHERE id = ?;`;
+            const params = [newFirst, newLast, roleId, mgrId, empId];
             db.query(sql, params, (err, res) => {
                 if (err) throw err;
                 console.log(`
