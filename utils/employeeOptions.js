@@ -281,70 +281,118 @@ function addEmployee() {
 
 //update role of an employee
 function updateRole() {
+    // get employees to populate the prompt
+    const sqlEmpl = `SELECT * FROM employees`;
+    let empArr = [];
+    db.query(sqlEmpl, (err, res) => {
+        if (err) throw err;
+        res.forEach((employee) => empArr.push(`${employee.first_name} ${employee.last_name}`));
+    });
+    // get managers to populate the prompt
+    const sqlMgr = `SELECT * FROM managers;`;
+    let mgrArr = [];
+    db.query(sqlMgr, (err, res) => {
+        if (err) throw err;
+        res.forEach((manager) => mgrArr.push(`${manager.first_name} ${manager.last_name}`));
+    });
+    // get roles to populate the prompt
+    const sqlRole = `SELECT * FROM roles;`;
+    let rolesArr = [];
+    db.query(sqlRole, (err, res) => {
+        if (err) throw err;
+        res.forEach((role) => rolesArr.push(`${role.title}`));
+    });
     inquirer
         .prompt([
             {
-                type: 'input',
-                name: 'employee_id',
-                message: 'What is the employee id number that you want to update the role?',
-                validate: input => {
-                    const pass = input.match(
-                        /^[1-9]\d*$/
-                    );
-                    if (pass) {
-                        return true;
-                    }
-                    return 'Please enter a positive number greater than zero.'
-                }
+                type: 'list',
+                name: 'employee',
+                message: 'Which Employee you want to update the info?',
+                choices: empArr
 
-            },
-            {
-                type: 'input',
-                name: 'role_id',
-                message: 'Which role id the employee is beeing assigned to?',
-                validate: input => {
-                    const pass = input.match(
-                        /^[1-9]\d*$/
-                    );
-                    if (pass) {
-                        return true;
-                    }
-                    return 'Please enter a positive number greater than zero.'
-                }
-            },
-            {
-                type: 'input',
-                name: 'manager_id',
-                message: 'What is the manager id the employee is beeing assigned to?',
-                validate: input => {
-                    const pass = input.match(
-                        /^[1-9]\d*$/
-                    );
-                    if (pass) {
-                        return true;
-                    }
-                    return 'Please enter a positive number greater than zero.'
-                }
             }
         ])
-        .then(answer => {
-            db.query(`UPDATE employees SET role_id = ?, manager_id = ? WHERE id = ?`,
-                [
-                    answer.role_id,
-                    answer.manager_id,
-                    answer.employee_id
-                ],
-                (err, res) => {
-                    if (err) throw err;
-                    console.log(`
-                    ${res.affectedRows} row updated successfully!`);
-                    employeeOptions()
-                })
+        .then(choice => {
+            let empId;
+            // Gets the first and last name from the manager response to use to find the id
+            let employeeFirstName = choice.employee.split(' ')[0];
+            let employeeLastName = choice.employee.split(' ').pop();
+            db.query(sqlEmpl, (err, res) => {
+                if (err) throw err;
+                // Loops through managers to find matching id
+                res.forEach((employee) => {
+                    if ((employeeFirstName === employee.first_name) && (employeeLastName === employee.last_name)) {
+                        empId = employee.id;
+                    }
+                });
+                return inquirer
+                    .prompt([
+                        {
+                            type: 'list',
+                            message: 'What is the Employee New Role?',
+                            name: 'role',
+                            choices: rolesArr
+                        }
+                    ])
+                    .then(roleChoice => {
+                        let roleId;
+                        let mgrId;
+                        // compare answer with db role titles
+                        db.query(sqlRole, (err, res) => {
+                            if (err) throw err;
+                            // Loops through roles to find matching id
+                            res.forEach((role) => {
+                                if (roleChoice.role === role.title) {
+                                    roleId = role.id;
+                                }
+                            });
+                            // compare answer with db manager name
+                            db.query(sqlMgr, (err, resMgr) => {
+                                if (err) throw err;
+                                return inquirer
+                                    .prompt([
+                                        {
+                                            type: 'list',
+                                            message: 'Who is the New Manager?',
+                                            name: 'manager',
+                                            choices: mgrArr
+                                        }
+                                    ])
+                                    .then(result => {
+                                        // Gets the first and last name from the manager response to use to find the id
+                                        let firstName = result.manager.split(' ')[0];
+                                        let lastName = result.manager.split(' ').pop();
+                                        // Loops through managers to find matching id
+                                        resMgr.forEach((manager) => {
+                                            if ((firstName === manager.first_name) && (lastName === manager.last_name)) {
+                                                mgrId = manager.id;
+                                            }
+                                        });
+                                        const sql = `UPDATE employees SET role_id = ?, manager_id = ? WHERE id = ?;`;
+                                        const params = [roleId, mgrId, empId];
+                                        db.query(sql, params, (err, res) => {
+                                            if (err) throw err;
+                                            console.log(`
+                                            ${res.affectedRows} row updated successfully!`);
+                                            employeeOptions()
+                                        })
+                                    })
+                            })
+                        })
+                    })
+            })
         })
 };
 
 // delete an employee
 function deleteEmployee() {
+    // get employees to populate the prompt
+    const sqlEmpl = `SELECT * FROM employees`;
+    let empArr = [];
+    db.query(sqlEmpl, (err, res) => {
+        if (err) throw err;
+        res.forEach((employee) => empArr.push(`${employee.first_name} ${employee.last_name}`));
+    });
     inquirer
         .prompt([
             {
