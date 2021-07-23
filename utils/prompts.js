@@ -47,28 +47,28 @@ function employeeOptions() {
                 type: 'list',
                 message: 'What would you like to do?',
                 choices: [
-                    'View all employees',
-                    'Add employee',
-                    'Update an employee role',
-                    'Remove an employee',
+                    'View Employees Filters',
+                    'Add Employee',
+                    'Update an Employee Role',
+                    'Remove an Employee',
                     'Go Back'
                 ]
             }
         ).then(answer => {
             switch (answer.action) {
-                case 'View all employees':
-                    employeeSearch();
+                case 'View Employees Filters':
+                    employeeFilter();
                     break;
 
-                case 'Add employee':
+                case 'Add Employee':
                     addEmployee();
                     break;
 
-                case 'Update an employee role':
+                case 'Update an Employee Role':
                     updateRole();
                     break;
 
-                case 'Remove an employee':
+                case 'Remove an Employee':
                     deleteEmployee();
                     break;
 
@@ -77,6 +77,128 @@ function employeeOptions() {
                     break;
             }
         })
+};
+
+// employee view filter
+function employeeFilter() {
+    inquirer
+        .prompt(
+            {
+                name: 'action',
+                type: 'list',
+                message: 'What would you like to do?',
+                choices: [
+                    'View all Employees',
+                    'View Employees by Manager',
+                    'View Employee by Department',
+                    'Go Back'
+                ]
+            }
+        ).then(answer => {
+            switch (answer.action) {
+                case 'View all Employees':
+                    employeeSearch();
+                    break;
+
+                case 'View Employees by Manager':
+                    filterByManager();
+                    break;
+
+                case 'View Employee by Department':
+                    filterByDept();
+                    break;
+
+                case 'Go Back':
+                    employeeOptions();
+                    break;
+            }
+        })
+};
+
+// filter search by manager
+function filterByManager() {
+    let mgrArr = [];
+    db.query(`SELECT * FROM managers;`, (err, res) => {
+        if (err) throw err;
+        res.forEach((manager) => mgrArr.push(`${manager.first_name} ${manager.last_name}`));
+        inquirer
+            .prompt([
+                {
+                    name: 'action',
+                    type: 'list',
+                    message: 'Select a Manager?',
+                    choices: mgrArr
+                }
+            ]).then(answer => {
+                const sql = `SELECT
+                    employees.id, 
+                    employees.first_name,
+                    employees.last_name, 
+                    roles.title AS title,
+                    departments.title AS department,
+                    roles.salary
+                FROM 
+                    employees 
+                LEFT JOIN 
+                    roles ON employees.role_id = roles.id
+                LEFT JOIN 
+                    departments ON departments.id = roles.department_id
+                LEFT JOIN 
+                    managers ON employees.manager_id = managers.id 
+                WHERE CONCAT(managers.first_name, ' ',managers.last_name) = ?;`;
+                const manager = answer.action;
+                db.query(sql, manager, (err, res) => {
+                    if (err) throw err;
+                    console.log(`
+                    Here are the employees managed by ${manager}
+                    `);
+                    console.table(res);
+                    employeeFilter();
+                })
+            })
+    })
+};
+
+// filter view by department
+function filterByDept() {
+    let deptArr = [];
+    db.query(`SELECT * FROM departments;`, (err, res) => {
+        console.log(res);
+        if (err) throw err;
+        res.forEach((department) => deptArr.push(`${department.title}`));
+        inquirer
+            .prompt([
+                {
+                    name: 'action',
+                    type: 'list',
+                    message: 'Select a Manager?',
+                    choices: deptArr
+                }
+            ]).then(answer => {
+                const sql = `SELECT
+                    employees.id, 
+                    employees.first_name,
+                    employees.last_name, 
+                    roles.title AS title,
+                    roles.salary
+                FROM 
+                    employees 
+                LEFT JOIN 
+                    roles ON employees.role_id = roles.id
+                LEFT JOIN 
+                    departments ON departments.id = roles.department_id
+                WHERE departments.title = ?;`                ;
+                const dept = answer.action;
+                db.query(sql, dept, (err, res) => {
+                    if (err) throw err;
+                    console.log(`
+                    Here are the Employees that are in ${dept} Department
+                    `);
+                    console.table(res);
+                    employeeFilter();
+                })
+            })
+    })
 };
 
 // departments options
@@ -88,23 +210,23 @@ function deptOptions() {
                 type: 'list',
                 message: 'What would you like to do?',
                 choices: [
-                    'View all departments',
-                    'Add departments',
-                    'Remove a department',
+                    'View all Departments',
+                    'Add a Department',
+                    'Remove a Department',
                     'Go Back'
                 ]
             }
         ).then(answer => {
             switch (answer.action) {
-                case 'View all departments':
+                case 'View all Departments':
                     deptSearch();
                     break;
 
-                case 'Add departments':
+                case 'Add a Departments':
                     addDept();
                     break;
 
-                case 'Remove a department':
+                case 'Remove a Department':
                     deleteDept();
                     break;
 
@@ -124,23 +246,23 @@ function roleOptions() {
                 type: 'list',
                 message: 'What would you like to do?',
                 choices: [
-                    'View all roles',
-                    'Add roles',
-                    'Remove a role',
+                    'View all Roles',
+                    'Add a Role',
+                    'Remove a Role',
                     'Go Back'
                 ]
             }
         ).then(answer => {
             switch (answer.action) {
-                case 'View all roles':
+                case 'View all Roles':
                     roleSearch();
                     break;
 
-                case 'Add roles':
+                case 'Add a Role':
                     addRoles();
                     break;
 
-                case 'Remove a role':
+                case 'Remove a Role':
                     deleteRole();
                     break;
 
@@ -165,7 +287,7 @@ FROM
     employees
     LEFT JOIN roles ON role_id = roles.id
     LEFT JOIN departments ON department_id = departments.id
-    LEFT JOIN employees AS managers ON employees.manager_id = managers.id;`,
+    LEFT JOIN managers ON manager_id = managers.id;`,
         (err, res) => {
             if (err) throw err
             console.table(res)
