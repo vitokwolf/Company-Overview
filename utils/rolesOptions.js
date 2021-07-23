@@ -52,6 +52,15 @@ function roleSearch() {
 };
 //add new role to database 
 function addRoles() {
+    // get departments to populate the prompt
+    const sqlDept = `SELECT * FROM departments;`;
+    let deptArr = [];
+    let deptData = [];
+    db.query(sqlDept, (err, res) => {
+        if (err) throw err;
+        deptData = res;
+        res.forEach((dept) => deptArr.push(`${dept.title}`));
+    });
     const roleQ = [
         {
             type: 'input',
@@ -60,23 +69,30 @@ function addRoles() {
         },
         {
             type: 'input',
-            message: 'Which department is the role in?',
-            name: 'id'
-        },
-        {
-            type: 'input',
             message: 'What is the salary for the new role?',
             name: 'salary'
+        },
+        {
+            type: 'list',
+            message: 'Which department is the role in?',
+            name: 'department',
+            choices: deptArr
         }
     ];
     inquirer
         .prompt(roleQ)
         .then(answer => {
+            let deptId;
+            deptData.forEach(dept => {
+                if (dept.title === answer.department) {
+                    deptId = dept.id;
+                }
+            });
             db.query(
                 `INSERT INTO roles SET ?`,
                 {
                     title: answer.title,
-                    department_id: answer.id,
+                    department_id: deptId,
                     salary: answer.salary
                 },
                 (err, res) => {
@@ -92,6 +108,15 @@ function addRoles() {
 };
 // delete a role
 function deleteRole() {
+    // get roles to populate the prompt
+    const sqlRole = `SELECT * FROM roles;`;
+    let roleArr = [];
+    let roleData = [];
+    db.query(sqlRole, (err, res) => {
+        if (err) throw err;
+        roleData = res;
+        res.forEach((role) => roleArr.push(`${role.title}`));
+    });
     inquirer
         .prompt([
             {
@@ -101,23 +126,21 @@ function deleteRole() {
                 default: false
             },
             {
-                type: 'input',
-                message: 'What is the id of the role?',
-                name: 'id',
+                type: 'list',
+                message: 'What Role to delete?',
+                name: 'role',
                 when: ({ confirmId }) => confirmId,
-                validate: input => {
-                    const pass = input.match(
-                        /^[1-9]\d*$/
-                    );
-                    if (pass) {
-                        return true;
-                    }
-                    return 'Please enter a positive number greater than zero.'
-                }
+                choices: roleArr
             }]
         ).then(answer => {
+            let roleId;
+            roleData.forEach(role => {
+                if (role.title === answer.role) {
+                    roleId = role.id;
+                }
+            });
             db.query(`DELETE FROM roles WHERE id = ?`,
-                [answer.id],
+                roleId,
                 (err, res) => {
                     if (err) {
                         throw err;

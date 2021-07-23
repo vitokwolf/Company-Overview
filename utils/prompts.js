@@ -7,7 +7,7 @@ const roleOptions = require('./rolesOptions');
 
 // =================================Starter Function=============================================================
 function init() {
-    inquirer
+     inquirer
         .prompt(
             {
                 name: 'action',
@@ -21,7 +21,7 @@ function init() {
                 ]
             }
         ).then(answer => {
-            switch (answer.action) {
+             switch (answer.action) {
                 case 'Explore Employees Options':
                     employeeOptions();
                     break;

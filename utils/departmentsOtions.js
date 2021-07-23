@@ -24,7 +24,7 @@ function deptOptions() {
                     deptSearch();
                     break;
 
-                case 'Add a Departments':
+                case 'Add a Department':
                     addDept();
                     break;
 
@@ -74,6 +74,15 @@ function addDept() {
 };
 // delete a department
 function deleteDept() {
+    // get departments to populate the prompt
+    const sqlDept = `SELECT * FROM departments;`;
+    let deptArr = [];
+    let deptData = [];
+    db.query(sqlDept, (err, res) => {
+        if (err) throw err;
+        deptData = res;
+        res.forEach((dept) => deptArr.push(`${dept.title}`));
+    });
     inquirer
         .prompt([
             {
@@ -83,23 +92,21 @@ function deleteDept() {
                 default: false
             },
             {
-                type: 'input',
-                message: 'What is the id of the department?',
-                name: 'id',
+                type: 'list',
+                message: 'What Department to delete?',
+                name: 'department',
                 when: ({ confirmId }) => confirmId,
-                validate: input => {
-                    const pass = input.match(
-                        /^[1-9]\d*$/
-                    );
-                    if (pass) {
-                        return true;
-                    }
-                    return 'Please enter a positive number greater than zero.'
-                }
+                choices: deptArr
             }]
         ).then(answer => {
+            let deptId;
+            deptData.forEach(dept => {
+                if (dept.title === answer.department) {
+                    deptId = dept.id;
+                }
+            });
             db.query(`DELETE FROM departments WHERE id = ?`,
-                [answer.id],
+                deptId,
                 (err, res) => {
                     if (err) {
                         throw err;

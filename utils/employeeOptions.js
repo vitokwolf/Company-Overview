@@ -283,10 +283,10 @@ function addEmployee() {
 function updateRole() {
     // get employees to populate the prompt
     const sqlEmpl = `SELECT * FROM employees`;
-    let empArr = [];
+    let emplArr = [];
     db.query(sqlEmpl, (err, res) => {
         if (err) throw err;
-        res.forEach((employee) => empArr.push(`${employee.first_name} ${employee.last_name}`));
+        res.forEach((employee) => emplArr.push(`${employee.first_name} ${employee.last_name}`));
     });
     // get managers to populate the prompt
     const sqlMgr = `SELECT * FROM managers;`;
@@ -305,11 +305,17 @@ function updateRole() {
     inquirer
         .prompt([
             {
+                type: 'confirm',
+                name: 'update',
+                message: 'Are you sure?',
+                default: true
+            },
+            {
                 type: 'list',
                 name: 'employee',
                 message: 'Which Employee you want to update the info?',
-                choices: empArr
-
+                choices: emplArr,
+                when: ({ update }) => update,
             }
         ])
         .then(choice => {
@@ -402,38 +408,35 @@ function deleteEmployee() {
                 default: false
             },
             {
-                type: 'input',
-                message: 'What is the id of the Employee?',
-                name: 'id',
+                type: 'list',
+                message: 'What Employee is beeing deleted?',
+                name: 'employee',
                 when: ({ confirmId }) => confirmId,
-                validate: input => {
-                    const pass = input.match(
-                        /^[1-9]\d*$/
-                    );
-                    if (pass) {
-                        return true;
-                    }
-                    return 'Please enter a positive number greater than zero.'
-                }
+                choices: empArr
             }]
-        ).then(answer => {
-            db.query(`DELETE FROM employees WHERE id = ?`,
-                [answer.id],
-                (err, res) => {
-                    if (err) {
-                        throw err;
-                    } else if (!res.affectedRows) {
-                        console.log(`
-                        Employee not found
-                        `);
-                        return employeeOptions();
-                    } else {
+        ).then(choice => {
+            let empId;
+            // Gets the first and last name from the manager response to use to find the id
+            let employeeFirstName = choice.employee.split(' ')[0];
+            let employeeLastName = choice.employee.split(' ').pop();
+            db.query(sqlEmpl, (err, res) => {
+                if (err) throw err;
+                // Loops through managers to find matching id
+                res.forEach((employee) => {
+                    if ((employeeFirstName === employee.first_name) && (employeeLastName === employee.last_name)) {
+                        empId = employee.id;
+                    }
+                });
+                db.query(`DELETE FROM employees WHERE id = ?`,
+                    [empId],
+                    (err, res) => {
+                        if (err) throw err;
                         console.log(`
                         Employee has been removed!
                         `);
                         employeeOptions()
-                    }
-                })
+                    })
+            })
         })
 };
 
