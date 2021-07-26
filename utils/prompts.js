@@ -66,7 +66,7 @@ function employeeOptions() {
                     break;
 
                 case 'Update an Employee':
-                    updateRole();
+                    updateInfo();
                     break;
 
                 case 'Remove an Employee':
@@ -249,12 +249,28 @@ function addEmployee() {
         {
             type: 'input',
             message: 'What is the first name of the employee?',
-            name: 'first_name'
+            name: 'first_name',
+            validate: input => {
+                if (input) {
+                    return true;
+                } else {
+                    console.log('What is the first name of the employee?');
+                    return false;
+                }
+            }
         },
         {
             type: 'input',
             message: 'What is the last name of the employee?',
-            name: 'last_name'
+            name: 'last_name',
+            validate: input => {
+                if (input) {
+                    return true;
+                } else {
+                    console.log('What is the last name of the employee?');
+                    return false;
+                }
+            }
         },
         {
             type: 'list',
@@ -295,19 +311,16 @@ function addEmployee() {
             db.query(sql, params,
                 (err, res) => {
                     if (err) throw err;
-                    console.log('last querry', typeof roleId);
-                    console.log(typeof mgrId);
                     console.log(`
                                     Employee has been added!
                                     `);
-                    console.table(res);
                     employeeOptions()
                 })
         })
 };
 
 //update role of an employee
-function updateRole() {
+function updateInfo() {
     // get employees to populate the prompt
     const sqlEmpl = `SELECT * FROM employees`;
     let emplArr = [];
@@ -361,6 +374,14 @@ function updateRole() {
             name: 'newFirstName',
             message: 'What is the Employee First Name?',
             when: ({ confirmNF }) => confirmNF,
+            validate: input => {
+                if (input) {
+                    return true;
+                } else {
+                    console.log('What is the first name of the employee?');
+                    return false;
+                }
+            }
         },
         {
             type: 'confirm',
@@ -374,6 +395,14 @@ function updateRole() {
             name: 'newLastName',
             message: 'What is the Employee Last Name?',
             when: ({ confirmNL }) => confirmNL,
+            validate: input => {
+                if (input) {
+                    return true;
+                } else {
+                    console.log('What is the last name of the employee?');
+                    return false;
+                }
+            }
         },
         {
             type: 'list',
@@ -559,13 +588,32 @@ function addRoles() {
     const roleQ = [
         {
             type: 'input',
-            message: 'What role would you like to add?',
-            name: 'title'
+            message: 'What is the Role tile?',
+            name: 'title',
+            validate: input => {
+                if (input) {
+                    return true;
+                } else {
+                    console.log('What is the Role tile?');
+                    return false;
+                }
+            }
         },
         {
             type: 'input',
             message: 'What is the salary for the new role?',
-            name: 'salary'
+            name: 'salary',
+            validate: input => {
+                const pass = input.match(
+                    /^[1-9]\d*$/
+                );
+                if (pass) {
+                    return true;
+                } else {
+                    console.log('Please enter a positive number greater than zero');
+                    return false;
+                }
+            }
         },
         {
             type: 'list',
@@ -713,7 +761,14 @@ function addDept() {
         .prompt({
             type: 'input',
             message: 'What is the name of the new department?',
-            name: 'title'
+            name: 'title',
+            validate: nameInput => {
+                if (nameInput) {
+                    return true;
+                } else {
+                    console.log('What is the name of the new department?')
+                }
+            }
         })
         .then(answer => {
             db.query(`INSERT INTO departments SET ?`,
