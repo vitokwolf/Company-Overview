@@ -18,7 +18,9 @@ ___
 
 ___
 ## Demo
-![demo video](https://youtu.be/KjzM1gHYx9A)
+![demo](./assets/Company-Overview.gif)
+
+Or watch it on [Youtube](https://youtu.be/KjzM1gHYx9A)
 
 
 ___
